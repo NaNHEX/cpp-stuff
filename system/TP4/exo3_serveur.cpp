@@ -47,10 +47,11 @@ int main(int argc, char* argv[]) {
     }
 
     struct sockaddr_in client_addr;
-    unsigned client_len = sizeof(client_addr);
-    int client = accept(serveur, (struct sockaddr*) &client_addr, &client_len);
     char buffer[1025];
     while(true) {
+        unsigned client_len = sizeof(client_addr);
+        int client = accept(serveur, (struct sockaddr*) &client_addr, &client_len);
+
         bzero(buffer, 1025);
         recv(client, buffer, 1024, 0);
         std::cout << "Requête: " << buffer;
@@ -59,10 +60,12 @@ int main(int argc, char* argv[]) {
         bzero(buffer, 1025);
         read(index_fd, buffer, 1024);
         close(index_fd);
-        send(client, buffer, sizeof(buffer), MSG_DONTWAIT);
+        char reponse[1107] = "HTTP/1.1 200 OK\r\nContent-Length: 1025\r\nContent-Type: text/html; charset=UTF-8\r\n\r\n";
+        strcat(reponse, buffer);
+        send(client, reponse, sizeof(reponse), MSG_DONTWAIT);
+        close(client);
     }
 
-    close(client);
     close(serveur);
     return 0;
 }
