@@ -7,7 +7,7 @@
 #include <cerrno>
 #include <cstring>
 #include <iostream>
-
+#include <vector>
 
 int main(int argc, char* argv[]) {
     if(argc != 3) {
@@ -47,21 +47,27 @@ int main(int argc, char* argv[]) {
     }
 
     struct sockaddr_in client_addr;
-    char buffer[1025];
     while(true) {
         unsigned client_len = sizeof(client_addr);
         int client = accept(serveur, (struct sockaddr*) &client_addr, &client_len);
-        bzero(buffer, 1025);
-        recv(client, buffer, sizeof(buffer), 0);
-        std::cout << "Requête: " << buffer << '\n';
 
-        int index_fd = open("/srv/http/index.php", O_RDONLY);
-        bzero(buffer, 1025);
-        read(index_fd, buffer, 1024);
-        close(index_fd);
-        char reponse[1107] = "HTTP/1.1 200 OK\r\nContent-Length: 1025\r\nContent-Type: text/html; charset=UTF-8\r\n\r\n";
-        strcat(reponse, buffer);
-        send(client, reponse, sizeof(reponse), MSG_DONTWAIT);
+        const unsigned int MAX_BUF_LENGTH = 4096;
+        std::vector<char> buffer(MAX_BUF_LENGTH);
+        std::string request;
+        int bytes = 0;
+        do {
+                bytes = recv(client, &buffer[0], buffer.size(), 0);
+            if(bytes == -1) {
+                    std::cerr << "Erreur: " << strerror(errno) << '\n';
+                    return -1;
+            }
+            else {
+                    request.append(buffer.cbegin(), buffer.cend());
+            }
+        } while(bytes == MAX_BUF_LENGTH);
+
+        std::cout << request << '\n';
+
         close(client);
     }
 

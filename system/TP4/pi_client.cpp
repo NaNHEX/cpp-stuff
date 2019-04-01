@@ -7,6 +7,9 @@
 #include <cerrno>
 #include <cstring>
 #include <iostream>
+#include <string>
+#include <sstream>
+#include <SenseHat.h>
 
 
 int main(int argc, char* argv[]) {
@@ -32,23 +35,24 @@ int main(int argc, char* argv[]) {
     serv_addr.sin_port = htons(port);
     serv_addr.sin_addr.s_addr = inet_addr("192.168.43.213");
 
-    int serveur = socket(AF_INET, SOCK_STREAM, 0);
-    if(serveur == -1) {
-        std::cerr << "Erreur: " << strerror(errno) << '\n';
-        return -1;
+    SenseHat card;
+    while(true) {
+        std::ostringstream ss;
+        ss << "Temp : " << card.ObtenirTemperature() << "°C Pression : " << card.ObtenirPression();
+        std::string request(ss.str());
+
+        int serveur = socket(AF_INET, SOCK_STREAM, 0);
+        if(serveur == -1) {
+            std::cerr << "Erreur: " << strerror(errno) << '\n';
+        }
+        else if(connect(serveur, (struct sockaddr*) &serv_addr, sizeof(serv_addr)) == -1) {
+            std::cerr << "Erreur: " << strerror(errno) << '\n';
+            sleep(5);
+        } else {
+            send(serveur, request.c_str(), request.length(), MSG_DONTWAIT);
+            close(serveur);
+            sleep(5);
+        }
     }
-    if(connect(serveur, (struct sockaddr*) &serv_addr, sizeof(serv_addr)) == -1) {
-        std::cerr << "Erreur: " << strerror(errno) << '\n';
-        return -1;
-    }
-
-
-    send(serveur, "Hello", 5, MSG_DONTWAIT);
-    char buffer[1107];
-    bzero(buffer, 1107);
-    recv(serveur, buffer, 1107, 0);
-    std::cout << buffer << '\n';
-
-    close(serveur);
     return 0;
 }
