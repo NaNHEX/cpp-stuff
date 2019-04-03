@@ -11,7 +11,6 @@
 #include <sstream>
 #include <SenseHat.h>
 
-
 int main(int argc, char* argv[]) {
     if(argc != 3) {
         std::cout << "Usage: -p [PORT]\n";
@@ -33,12 +32,12 @@ int main(int argc, char* argv[]) {
     memset(&serv_addr, 0, sizeof(serv_addr));
     serv_addr.sin_family = AF_INET;
     serv_addr.sin_port = htons(port);
-    serv_addr.sin_addr.s_addr = inet_addr("192.168.43.213");
+    serv_addr.sin_addr.s_addr = inet_addr("192.168.43.212");
 
     SenseHat card;
     while(true) {
         std::ostringstream ss;
-        ss << "Temp : " << card.ObtenirTemperature() << "°C Pression : " << card.ObtenirPression();
+        ss << "<sensehat><temperature>" << card.ObtenirTemperature() << "</temperature><pression>" << card.ObtenirPression() << "</pression></sensehat>";
         std::string request(ss.str());
 
         int serveur = socket(AF_INET, SOCK_STREAM, 0);

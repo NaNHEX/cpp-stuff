@@ -8,6 +8,7 @@
 #include <cstring>
 #include <iostream>
 #include <vector>
+#include "tinyxml2.h"
 
 int main(int argc, char* argv[]) {
     if(argc != 3) {
@@ -66,7 +67,10 @@ int main(int argc, char* argv[]) {
             }
         } while(bytes == MAX_BUF_LENGTH);
 
-        std::cout << request << '\n';
+        tinyxml2::XMLDocument doc;
+        doc.Parse(request.c_str());
+        std::cout << "Temp : " << doc.FirstChildElement("sensehat")->FirstChildElement("temperature")->GetText();
+        std::cout << " Pression : " << doc.FirstChildElement("sensehat")->FirstChildElement("pression")->GetText() << '\n';
 
         close(client);
     }
